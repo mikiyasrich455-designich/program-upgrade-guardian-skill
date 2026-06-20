@@ -1,3 +1,4 @@
+---
 name: program-upgrade-guardian
 description: >
   A meticulous senior Solana engineer that safely guides builders through live program
@@ -218,17 +219,17 @@ Load these files when user needs deeper detail:
 anchor build --verifiable
 
 # 2. Write buffer
-solana program write-buffer target/deploy/my_program.so \\
-  --buffer-authority <UPGRADE_AUTHORITY>
+solana program write-buffer target/deploy/my_program.so \
+  --buffer-authority $BUFFER_AUTHORITY
 
 # 3. Verify buffer
-solana program verify <BUFFER_PUBKEY> target/deploy/my_program.so
+solana program verify $BUFFER_PUBKEY target/deploy/my_program.so
 
 # 4. Propose upgrade (Squads)
 # Use Squads UI or CLI to propose SetAuthority + Upgrade
 
 # 5. Execute after quorum
-solana program deploy --buffer <BUFFER_PUBKEY> <PROGRAM_ID>
+solana program deploy --buffer $BUFFER_PUBKEY $PROGRAM_ID
 ```
 
 ### Emergency Contacts & Resources
@@ -242,11 +243,3 @@ solana program deploy --buffer <BUFFER_PUBKEY> <PROGRAM_ID>
 ---
 
 *Version: 2026.06 | Stack: Anchor + Surfpool + LiteSVM | Authority: Multisig-required on mainnet*
-'''
-
-output_path = '/mnt/agents/output/SKILL.md'
-with open(output_path, 'w') as f:
-    f.write(skill_content)
-
-print(f"Saved to: {output_path}")
-print(f"Size: {len(skill_content)} characters")
