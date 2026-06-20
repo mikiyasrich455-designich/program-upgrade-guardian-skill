@@ -1,34 +1,25 @@
 # Program Upgrade Guardian Skill
 
-## What is this skill?
-This skill turns Claude (or any AI in Solana AI Kit) into a **careful senior engineer** that helps you safely upgrade your Solana programs and migrate data.
+**A production-ready skill for the Solana AI Kit**
 
-## Why it exists
-Upgrading live Solana programs is one of the scariest and most error-prone things builders do. One mistake can break user data or lock funds. This skill guides you step-by-step with safety checks.
+## Problem it solves
+Upgrading live Solana programs and migrating state is one of the **most dangerous and stressful** tasks for builders. One small mistake can corrupt user data or lock funds forever.
 
-## Key Features
-- Safe buffer + multisig upgrade workflow
-- State migration planning
-- Realistic testing with Surfpool + LiteSVM
-- Risk detection and warnings
-- Post-upgrade cleanup
+## What this skill does
+It acts as a **careful Guardian** that:
+- Guides you safely from local testing → devnet → mainnet
+- Detects risky changes (Borsh layout drift, account resizing, etc.)
+- Uses latest 2026 tools (LiteSVM, Surfpool, Anchor, Helius)
+- Always recommends the safe buffer + multisig workflow
+- Creates migration plans and rollback strategies
 
 ## How to use
-Just tell the AI:
+Just say:
 - "Help me upgrade my program safely"
-- "I want to add a new field to my user account"
+- "I need to add a new field to my user account on mainnet"
 - "Guide me through state migration"
 
-## Tools it recommends
-- Anchor
-- LiteSVM
-- Surfpool
-- Helius RPC
-- Solana CLI
+## Made for
+Solana AI Kit Bounty 2026
 
-## Installation
-Just add this skill folder to your Solana AI Kit and it will be available.
-
----
-
-**Made for Solana AI Kit Bounty 2026**
+**Status:** Ready to be used / merged
