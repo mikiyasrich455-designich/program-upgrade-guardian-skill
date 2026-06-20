@@ -2,49 +2,50 @@
 
 ## Name + Short Description
 **Skill Name:** program-upgrade-guardian-skill  
-**Short Description:** A careful "Guardian" that helps Solana builders safely upgrade live programs and migrate state without breaking user data, causing downtime, or losing funds.
+**Short Description:** A meticulous "Guardian" AI skill that helps Solana builders safely upgrade live programs and perform state migrations with zero data loss and maximum security.
 
 ## When to Use This Skill
-- Changing account structures or adding new fields
-- Upgrading a live mainnet program
-- Transferring upgrade authority to multisig or DAO
-- Migrating user data to new program version
-- Testing upgrades before going to mainnet
+- Adding/changing Anchor account structs on live programs
+- Upgrading high-TVL or production programs
+- Transferring upgrade authority (to multisig/DAO)
+- Performing state migrations or account reallocations
+- Pre-flight risk assessment before mainnet changes
 
 ## Core Capabilities
-- Detects dangerous code and data layout changes
-- Creates safe step-by-step upgrade plans
-- Uses Surfpool + LiteSVM for realistic testing
-- Generates buffer-based safe deployment commands
-- Gives clear risk warnings and rollback plans
+- Automatic Borsh layout drift detection
+- Safe buffer + multisig upgrade workflow
+- Realistic mainnet forking with Surfpool + LiteSVM
+- Smart state migration blueprint generation
+- Risk scoring + guardian-style warnings
+- Rollback plans and post-upgrade cleanup
 
 ## Full Step-by-Step Guardian Pipeline
-1. Discovery (check current program and authority)
-2. Analysis (compare old and new code)
-3. Local Testing (Surfpool + LiteSVM)
-4. Migration Blueprint (how to safely move data)
-5. Devnet Rehearsal
-6. Mainnet Upgrade (safe buffer method)
-7. Verification
-8. Post-Upgrade Cleanup (reclaim rent)
+1. **Discovery** – Pull program metadata and authority via Helius
+2. **Analysis** – Detect breaking changes and layout risks
+3. **Local Testing** – Fork mainnet state with Surfpool + fast testing with LiteSVM
+4. **Migration Blueprint** – Generate safe realloc + migration code
+5. **Devnet Rehearsal** – Full test deployment
+6. **Mainnet Upgrade** – Execute via secure buffer workflow
+7. **Verification** – IDL, PDA, canary transaction checks
+8. **Post-Upgrade** – Buffer cleanup and rent reclamation
 
-## Recommended Tools (2026)
-- LiteSVM — super fast local testing
-- Surfpool — fork real mainnet state locally
-- Anchor — program building and testing
-- Helius — RPC and priority fees
-- Solana CLI — deployment commands
+## Recommended Tools (2026 Stack)
+- **LiteSVM** — Ultra-fast in-process testing
+- **Surfpool** — Fork real mainnet state locally
+- **Anchor** — Program build, IDL, testing
+- **Helius** — RPC, priority fees, data queries
+- **Solana CLI** — Buffer and authority management
 
-## Safety Rules (Guardian Mode)
-- Always test locally first with Surfpool + LiteSVM
-- Never deploy directly with `solana program deploy` on mainnet
-- Use buffer workflow for all production upgrades
-- Add new fields only at the end of structs
-- Move authority to multisig before mainnet
+## Safety Rules & Red Flags (Guardian Mode)
+- Never run `solana program deploy` directly on mainnet
+- Always use buffer + multisig workflow for production
+- Append new fields **only at the end** of structs
+- Use `#[account(realloc)]` for account resizing
+- Test with real mainnet fork before upgrading
 
 ## Progressive Loading
-Load safety rules first, then tools and commands only when needed.
+Load core safety rules first, then tool commands and examples only when needed.
 
-## Example User Prompt
-User: "Help me upgrade my program safely to v2"  
-Guardian: Gives full pipeline, risk check, commands, and safety warnings.
+## Example Interaction
+**User:** "Help me safely upgrade my program and add a new field to User account"  
+**Guardian:** Performs risk analysis → gives migration plan → buffer commands → multisig recommendation.
