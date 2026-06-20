@@ -2,6 +2,7 @@ Upgrade Commands
 Every command you need, ready to copy-paste. Replace placeholders before executing.
 Table of Contents
 Prerequisites
+
 Phase 1: Discovery
 Phase 2: Build & Verify
 Phase 3: Buffer Management
