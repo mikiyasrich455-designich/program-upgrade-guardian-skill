@@ -1,51 +1,42 @@
-# program-upgrade-guardian-skill
+# Program Upgrade Guardian Skill
 
-## Name + Short Description
-**Skill Name:** program-upgrade-guardian-skill  
-**Short Description:** A meticulous "Guardian" AI skill that helps Solana builders safely upgrade live programs and perform state migrations with zero data loss and maximum security.
+**Production-Ready Skill for Solana AI Kit Bounty 2026**
 
-## When to Use This Skill
-- Adding/changing Anchor account structs on live programs
-- Upgrading high-TVL or production programs
-- Transferring upgrade authority (to multisig/DAO)
-- Performing state migrations or account reallocations
-- Pre-flight risk assessment before mainnet changes
+## The Real Problem It Solves
+Upgrading live Solana programs is one of the **scariest and most error-prone** tasks in the ecosystem.  
+One mistake in account layout or deployment can:
+- Corrupt user data forever
+- Brick the program
+- Lock up funds
+- Cause hours/days of downtime
 
-## Core Capabilities
-- Automatic Borsh layout drift detection
-- Safe buffer + multisig upgrade workflow
-- Realistic mainnet forking with Surfpool + LiteSVM
-- Smart state migration blueprint generation
-- Risk scoring + guardian-style warnings
-- Rollback plans and post-upgrade cleanup
+Most builders either avoid upgrades or pray it works.
 
-## Full Step-by-Step Guardian Pipeline
-1. **Discovery** – Pull program metadata and authority via Helius
-2. **Analysis** – Detect breaking changes and layout risks
-3. **Local Testing** – Fork mainnet state with Surfpool + fast testing with LiteSVM
-4. **Migration Blueprint** – Generate safe realloc + migration code
-5. **Devnet Rehearsal** – Full test deployment
-6. **Mainnet Upgrade** – Execute via secure buffer workflow
-7. **Verification** – IDL, PDA, canary transaction checks
-8. **Post-Upgrade** – Buffer cleanup and rent reclamation
+## What This Skill Does
+It turns any AI (Claude/Gemini) into a **paranoid but extremely competent senior Solana engineer** — your personal "Guardian" that guides you safely through the entire process using 2026 best practices.
 
-## Recommended Tools (2026 Stack)
-- **LiteSVM** — Ultra-fast in-process testing
-- **Surfpool** — Fork real mainnet state locally
-- **Anchor** — Program build, IDL, testing
-- **Helius** — RPC, priority fees, data queries
-- **Solana CLI** — Buffer and authority management
+## Key Features
+- Full safe pipeline (local → devnet → mainnet)
+- Automatic Borsh layout drift protection
+- Realistic testing with **Surfpool + LiteSVM**
+- Secure buffer + multisig workflow
+- State migration planning + rollback
+- Post-upgrade rent reclamation
 
-## Safety Rules & Red Flags (Guardian Mode)
-- Never run `solana program deploy` directly on mainnet
-- Always use buffer + multisig workflow for production
-- Append new fields **only at the end** of structs
-- Use `#[account(realloc)]` for account resizing
-- Test with real mainnet fork before upgrading
+## How to Use
+Just say things like:
+- "Help me safely upgrade my program to v2"
+- "I want to add a new field to my User account on mainnet"
+- "Transfer upgrade authority to Squads multisig safely"
 
-## Progressive Loading
-Load core safety rules first, then tool commands and examples only when needed.
+## Tools Recommended
+LiteSVM • Surfpool • Anchor • Helius • Solana CLI
 
-## Example Interaction
-**User:** "Help me safely upgrade my program and add a new field to User account"  
-**Guardian:** Performs risk analysis → gives migration plan → buffer commands → multisig recommendation.
+## Why This Skill Stands Out
+Most skills are about tokens or trading.  
+This one solves a **real, painful, recurring engineering problem** that every serious Solana builder faces.
+
+---
+
+**Submitted for Solana AI Kit Bounty**  
+**Goal:** Make program upgrades boring and safe instead of stressful and dangerous.
