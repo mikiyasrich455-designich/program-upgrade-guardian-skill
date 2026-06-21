@@ -1,4 +1,4 @@
-# Program Upgrade Guardian Skill
+# Program Upgrade Guardian
 
 > Production-Ready Skill for Solana AI Kit — A meticulous senior Solana engineer that safely guides builders through live program upgrades, state migrations, authority transfers, and zero-downtime deployments.
 
@@ -21,40 +21,40 @@ One small mistake can:
 
 Program Upgrade Guardian turns any AI into a careful, paranoid senior Solana engineer that guides you safely through every step using 2026 best practices.
 
-- Full Guardian Pipeline (Discovery → Analysis → Testing → Upgrade → Rollback)
-- Automatic Borsh layout drift detection
-- Safe buffer + multisig workflow
-- Realistic mainnet forking with Surfpool + LiteSVM
-- State migration blueprints + rollback plans
-- Strict safety rules & red flags
-- Post-upgrade cleanup & rent reclamation
+- **Full Guardian Pipeline** (Discovery → Analysis → Testing → Upgrade → Rollback)
+- **Automatic Borsh layout drift detection**
+- **Safe buffer + multisig workflow**
+- **Realistic mainnet forking** with Surfpool + LiteSVM
+- **State migration blueprints** + rollback plans
+- **Strict safety rules** & red flags
+- **Post-upgrade cleanup** & rent reclamation
 
 ---
 
 ## Repository Structure
 
-```plain
+```
 program-upgrade-guardian-skill/
 ├── SKILL.md                          # Main skill definition
 ├── README.md                         # This file
 ├── LICENSE                           # MIT License
-├── install.sh                        # Dependency checker & setup helper
+├── install.py                        # Dependency checker & setup helper (safe Python)
 ├── .github/
 │   └── workflows/
-│       └── idl-check.yml             # CI: IDL compatibility gate
+│       └── idl-check.yml             # CI: 6-gate pipeline (lint → tests → IDL → audit → build → risk)
 ├── agents/
-│   └── guardian-agent.md             # Agent personas & tone specs
+│   └── guardian-agent.md             # Agent personas, tool schemas & selection logic
 ├── commands/
-│   └── upgrade-commands.md           # Exact copy-paste CLI commands
+│   └── upgrade-commands.md           # Exact copy-paste CLI commands for every phase
 ├── docs/
 │   ├── incident-response.md          # Emergency playbooks (SEV-1 to SEV-4)
 │   └── program-lifecycle.md          # Deploy → Operate → Upgrade → Sunset
 ├── rules/
-│   └── safety-rules.md               # Non-negotiable safety matrix
+│   └── safety-rules.md               # 14 non-negotiable safety rules with auto-block matrix
 ├── templates/
-│   └── migration-template.rs         # Copy-paste Rust migration patterns
+│   └── migration-template.rs         # 3 production-ready Rust migration patterns
 └── tests/
-    └── upgrade-test-suite.md         # LiteSVM → Surfpool → Devnet → Mainnet
+    └── upgrade-test-suite.md         # LiteSVM → Surfpool → Devnet → Mainnet test pyramid
 ```
 
 ---
@@ -63,13 +63,13 @@ program-upgrade-guardian-skill/
 
 ### Prerequisites
 
-| Tool        | Minimum Version | Check               |
-|-------------|-----------------|---------------------|
-| Anchor      | 0.30.0          | `anchor --version`  |
-| Solana CLI  | 1.18.0          | `solana --version`  |
-| Squads CLI  | Latest          | `sqd --version`     |
-| Node.js     | 20.x            | `node --version`    |
-| Rust        | 1.75+           | `rustc --version`   |
+| Tool | Minimum Version | Check |
+|------|----------------|-------|
+| Anchor | 0.30.0 | `anchor --version` |
+| Solana CLI | 1.18.0 | `solana --version` |
+| Squads CLI | Latest | `sqd --version` |
+| Node.js | 20.x | `node --version` |
+| Rust | 1.75+ | `rustc --version` |
 
 ### Installation
 
@@ -78,10 +78,11 @@ program-upgrade-guardian-skill/
 git clone https://github.com/mikiyasrich455-designich/program-upgrade-guardian-skill.git
 cd program-upgrade-guardian-skill
 
-# Run the setup checker
-chmod +x install.sh
-./install.sh
+# Run the setup checker (safe Python script — read it first!)
+python3 install.py
 ```
+
+> **Note**: `install.py` is a read-only environment checker. It does not modify your system.
 
 ### Usage
 
@@ -100,7 +101,7 @@ The skill automatically loads the right agent (`upgrade-warden`, `risk-analyst`,
 
 ### The Guardian Pipeline
 
-```plain
+```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │  Discovery  │───▶│   Analysis  │───▶│ Local Test  │───▶│  Migration  │
 │   (Pull)    │    │(Drift+Risk) │    │(Surfpool+   │    │   (Plan)    │
@@ -120,14 +121,16 @@ The skill automatically loads the right agent (`upgrade-warden`, `risk-analyst`,
 - Prefer `Option<T>` for new string fields
 - Never use direct `solana program deploy` on mainnet
 - Always move authority to multisig before production upgrade
+- Risk score ≥ 7 requires second human review
+- All tests must pass before mainnet
 
 ### Agent Personas
 
-| Agent               | Role                                      | Trigger                    |
-|---------------------|-------------------------------------------|----------------------------|
-| `upgrade-warden`    | Main Guardian (orchestrates pipeline)     | Default for all requests   |
-| `risk-analyst`      | Quantifies danger (scores 1-10)           | Risk check or score > 5    |
-| `migration-engineer`| Writes bulletproof migration code         | State migration needed     |
+| Agent | Role | Trigger |
+|-------|------|---------|
+| `upgrade-warden` | Main Guardian (orchestrates pipeline) | Default for all requests |
+| `risk-analyst` | Quantifies danger (scores 1-10) | Risk check or score > 5 |
+| `migration-engineer` | Writes bulletproof migration code | State migration needed |
 
 ---
 
@@ -135,13 +138,13 @@ The skill automatically loads the right agent (`upgrade-warden`, `risk-analyst`,
 
 This skill includes a complete test pyramid:
 
-| Layer   | Tool           | Purpose                                  |
-|---------|----------------|------------------------------------------|
-| Unit    | LiteSVM        | Instruction logic, migration math        |
-| Fork    | Surfpool       | Real mainnet account data                |
-| Staging | Devnet         | Full deployment + multisig rehearsal     |
-| Shadow  | Mainnet RPC    | Pre-launch schema validation             |
-| Monitor | Custom scripts | 24h post-upgrade health checks           |
+| Layer | Tool | Purpose |
+|-------|------|---------|
+| Unit | LiteSVM | Instruction logic, migration math |
+| Fork | Surfpool | Real mainnet account data |
+| Staging | Devnet | Full deployment + multisig rehearsal |
+| Shadow | Mainnet RPC | Pre-launch schema validation |
+| Monitor | Custom scripts | 24h post-upgrade health checks |
 
 See `tests/upgrade-test-suite.md` for full details.
 
@@ -204,4 +207,4 @@ MIT License — see `LICENSE` for details.
 
 ---
 
-> Version: 2026.06 | Stack: Anchor + Surfpool + LiteSVM | Authority: Multisig-required on mainnet
+> **Version**: 2026.06 | **Stack**: Anchor + Surfpool + LiteSVM | **Authority**: Multisig-required on mainnet
