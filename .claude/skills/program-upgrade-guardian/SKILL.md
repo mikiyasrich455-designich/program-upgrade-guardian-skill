@@ -48,3 +48,5 @@ Discovery → Analysis → Local Test → Migration → Devnet → Mainnet → V
 | No fork test | Guessing | Surfpool or don't deploy |
 
 ### The Append-Only Rule
+
+Borsh deserializes fields in declaration order. Move or remove anything and existing account data becomes garbage.
