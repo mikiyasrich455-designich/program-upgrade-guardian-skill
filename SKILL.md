@@ -1,4 +1,3 @@
----
 name: program-upgrade-guardian
 description: >
   A meticulous senior Solana engineer that safely guides builders through live program
@@ -11,7 +10,7 @@ user-invocable: true
 
 > **Safe upgrades are boring. Boring is good.**
 
-This skill turns any AI into a paranoid senior Solana engineer who treats every program upgrade like it could brick a million-dollar protocol — because it could.
+This skill transforms any AI into a paranoid senior Solana engineer who treats every program upgrade like it could brick a million-dollar protocol — because it could.
 
 ---
 
@@ -31,13 +30,14 @@ This skill turns any AI into a paranoid senior Solana engineer who treats every 
 
 ## The Stack
 
-| Tool | Job | Why It Matters |
-|------|-----|---------------|
-| **Anchor 0.30** | Framework + verifiable builds | Reproducible deployments |
-| **Surfpool** | Mainnet state forking | Test against real accounts, not mocks |
-| **LiteSVM** | In-process simulation | Fast unit tests without RPC |
-| **Helius RPC** | Priority fees + queries | Reliable mainnet access |
-| **Squads CLI** | Multisig operations | No single point of failure |
+| Tool | Job | Version | Why It Matters |
+|------|-----|---------|---------------|
+| **Anchor** | Framework + verifiable builds | 0.30.0 | Reproducible deployments |
+| **Surfpool** | Mainnet state forking | Latest | Test against real accounts, not mocks |
+| **LiteSVM** | In-process simulation | 0.6 | Fast unit tests without RPC |
+| **Helius RPC** | Priority fees + queries | Production tier | Reliable mainnet access |
+| **Squads CLI** | Multisig operations | Latest | No single point of failure |
+| **Solana CLI** | Buffer + authority management | 1.18.0 | Core deployment tooling |
 
 ---
 
@@ -47,20 +47,299 @@ This skill turns any AI into a paranoid senior Solana engineer who treats every 
 Discovery → Analysis → Local Test → Migration → Devnet → Mainnet → Verify → Rollback
 ```
 
-### Phase Breakdown
+### Phase 1: Discovery — Pull Program Metadata
 
-| Phase | What Happens | Exit Criteria |
-|-------|-------------|---------------|
-| **1. Discovery** | Pull program metadata, verify authority, list accounts | Authority confirmed, program ID valid |
-| **2. Analysis** | Compare old vs new IDL, detect Borsh drift, score risk | Risk score documented, drift flagged |
-| **3. Local Test** | Fork mainnet with Surfpool, simulate upgrade in LiteSVM | All instructions pass, no panics |
-| **4. Migration Plan** | Generate migration instructions, realloc logic, PDA versioning | Code compiles, math checks out |
-| **5. Devnet Rehearsal** | Full dry run with real RPC, execute migration | Integration tests green |
-| **6. Mainnet Upgrade** | Buffer deploy → hash verify → Squads proposal → execute | Multisig quorum reached |
-| **7. Verification** | Hash check, critical instruction test, 24h monitor | Program behaves identically |
-| **8. Rollback & Cleanup** | Keep buffer 7 days, document recovery tx, close temp accounts | Escape hatch confirmed |
+**Objective:** Know exactly what you're upgrading before you touch anything.
 
-**No skipping phases.** Ever.
+**Real Commands:**
+
+```bash
+# Pull program account metadata
+solana program show $PROGRAM_ID --url $RPC_URL
+
+# Check upgrade authority (CRITICAL — must be multisig on mainnet)
+solana program show $PROGRAM_ID --url $RPC_URL | grep "Authority:"
+
+# Fetch deployed IDL (if Anchor program)
+anchor idl fetch $PROGRAM_ID --url $RPC_URL > idl-current.json
+
+# Check program buffer status
+solana program show --buffers --url $RPC_URL
+
+# List largest program accounts (know your state size)
+solana program show $PROGRAM_ID --url $RPC_URL --programs | head -10
+```
+
+**Exit Criteria:**
+- [x] Authority confirmed (multisig for mainnet)
+- [x] Program ID valid and upgradeable
+- [x] Current IDL saved for comparison
+- [x] Account count and sizes documented
+
+**Authority Check:**
+```bash
+AUTHORITY=$(solana program show $PROGRAM_ID | grep "Authority:" | awk '{print $2}')
+# If length == 44 and doesn't start with "squads" → HOT WALLET → BLOCK on mainnet
+```
+
+---
+
+### Phase 2: Analysis — Borsh Drift Check + Risk Scoring
+
+**Objective:** Detect any change that could corrupt existing accounts.
+
+**Real Commands:**
+
+```bash
+# Compare old vs new IDL
+jq '.accounts' idl-current.json > old_accounts.json
+jq '.accounts' target/idl/new.json > new_accounts.json
+
+# Extract account layouts for manual comparison
+diff -u old_accounts.json new_accounts.json
+
+# Check for breaking changes:
+# - Field removal? → BLOCK
+# - Field reorder? → BLOCK
+# - Field size reduction? → BLOCK
+# - Only append at end? → ALLOW
+```
+
+**Risk Scoring:**
+
+| Factor | Weight | Score |
+|--------|--------|-------|
+| Account count | High | 1-10 |
+| Layout change type | High | 1-10 |
+| Authority model | Medium | 1-10 |
+| Test coverage | Medium | 1-10 |
+| **Total** | | **1-10** |
+
+**Exit Criteria:**
+- [x] Risk score documented (1-10)
+- [x] Borsh drift flagged or cleared
+- [x] Breaking changes identified
+- [x] Score < 7 OR second review obtained
+
+---
+
+### Phase 3: Local Test — Surfpool Fork + LiteSVM
+
+**Objective:** Prove the upgrade works before spending real SOL.
+
+**Real Commands:**
+
+```bash
+# Fork mainnet state with Surfpool
+surfpool fork --rpc $MAINNET_RPC --output fork-state.json
+
+# Run LiteSVM tests against forked state
+cargo test --features test-sbf
+
+# Test migration instruction specifically
+cargo test test_migration -- --nocapture
+
+# Verify no panics, no account corruption
+```
+
+**Exit Criteria:**
+- [x] All unit tests pass
+- [x] Fork tests pass with real account data
+- [x] Migration instruction tested
+- [x] No compute unit overflow
+
+---
+
+### Phase 4: Migration Plan — Generate Safe Code
+
+**Objective:** Write the exact code that moves state from old to new.
+
+**Real Code:**
+
+```rust
+// Safe account update — append only
+#[account]
+pub struct User {
+    pub authority: Pubkey,      // [existing] offset 8
+    pub balance: u64,             // [existing] offset 40
+    pub reward_rate: u64,         // [NEW] offset 48 — appended at end
+    pub bump: u8,                 // [existing] offset 56
+}
+
+// Migration instruction
+pub fn migrate_user(ctx: Context<MigrateUser>) -> Result<()> {
+    let user = &mut ctx.accounts.user;
+
+    // Only initialize new fields — never touch existing ones
+    if user.reward_rate == 0 {
+        user.reward_rate = 100; // default
+    }
+
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct MigrateUser<'info> {
+    #[account(mut, has_one = authority)]
+    pub user: Account<'info, User>,
+    pub authority: Signer<'info>,
+}
+```
+
+**Exit Criteria:**
+- [x] Migration code compiles
+- [x] Realloc math validated
+- [x] Backward compatibility confirmed
+- [x] LiteSVM tests for migration pass
+
+---
+
+### Phase 5: Devnet Rehearsal — Full Dry Run
+
+**Objective:** Execute the entire upgrade on devnet before mainnet.
+
+**Real Commands:**
+
+```bash
+# Switch to devnet
+solana config set --url https://api.devnet.solana.com
+
+# Deploy new program
+anchor deploy --provider.cluster devnet
+
+# Execute migration instruction
+anchor run migrate --provider.cluster devnet
+
+# Run full integration test suite
+anchor test --provider.cluster devnet --skip-build
+```
+
+**Exit Criteria:**
+- [x] Program deploys successfully
+- [x] Migration executes without errors
+- [x] All integration tests pass
+- [x] Authority remains multisig
+
+---
+
+### Phase 6: Mainnet Upgrade — Buffer + Multisig
+
+**Objective:** Deploy to mainnet with zero single-points-of-failure.
+
+**Real Commands:**
+
+```bash
+# 1. Build verifiable
+anchor build --verifiable
+
+# 2. Create buffer keypair
+solana-keygen new -o buffer-keypair.json --no-bip39-passphrase
+
+# 3. Write program to buffer (NOT deploy)
+solana program write-buffer target/deploy/$PROGRAM.so   --buffer buffer-keypair.json
+
+# 4. Record buffer address
+BUFFER_PUBKEY=$(solana-keygen pubkey buffer-keypair.json)
+echo "Buffer: $BUFFER_PUBKEY"
+
+# 5. CRITICAL: Set buffer authority to multisig
+solana program set-buffer-authority $BUFFER_PUBKEY   --new-buffer-authority $MULTISIG_PUBKEY
+
+# 6. Verify buffer authority
+solana program show $BUFFER_PUBKEY | grep "Authority"
+
+# 7. Create Squads proposal
+sqd program-upgrade create   --multisig $MULTISIG_PUBKEY   --program $PROGRAM_ID   --buffer $BUFFER_PUBKEY   --spill $SPILL_PUBKEY   --name "Upgrade $PROGRAM to v$VERSION"
+
+# 8. Multisig members vote
+sqd proposal vote --multisig $MULTISIG_PUBKEY --proposal $PROPOSAL_ID
+
+# 9. Execute after quorum
+sqd proposal execute --multisig $MULTISIG_PUBKEY --proposal $PROPOSAL_ID
+```
+
+**Exit Criteria:**
+- [x] Buffer hash matches build
+- [x] Buffer authority is multisig
+- [x] Squads proposal created
+- [x] Quorum reached and executed
+- [x] Program hash verified post-upgrade
+
+---
+
+### Phase 7: Verification — Post-Upgrade Health Check
+
+**Objective:** Confirm the upgrade didn't break anything.
+
+**Real Commands:**
+
+```bash
+# Verify program hash matches build
+solana program dump $PROGRAM_ID /tmp/verify.so
+sha256sum /tmp/verify.so target/deploy/$PROGRAM.so
+# MUST match exactly
+
+# Verify authority is still multisig
+solana program show $PROGRAM_ID | grep "Authority"
+
+# Test critical instructions
+anchor test --skip-build --provider.cluster mainnet
+
+# Monitor for 24 hours
+# Check program logs: solana logs $PROGRAM_ID
+# Verify all user accounts accessible
+```
+
+**Exit Criteria:**
+- [x] Program hash matches build
+- [x] Authority unchanged (still multisig)
+- [x] Critical instructions pass
+- [x] 24h monitoring initiated
+
+---
+
+### Phase 8: Rollback & Cleanup — Emergency Readiness
+
+**Objective:** Keep escape hatch open, clean up when safe.
+
+**Real Commands:**
+
+```bash
+# Keep buffer for 7 days (rollback insurance)
+# DO NOT close immediately
+
+# After 7 days and confirmed stable — reclaim buffer rent
+solana program close --buffers
+
+# If rollback needed within 7 days:
+# 1. Build old version
+git checkout $OLD_VERSION
+anchor build --verifiable
+
+# 2. Create rollback buffer
+solana-keygen new -o rollback-buffer.json --no-bip39-passphrase
+solana program write-buffer target/deploy/$PROGRAM.so   --buffer rollback-buffer.json
+
+# 3. Set authority to multisig
+ROLLBACK_BUFFER=$(solana-keygen pubkey rollback-buffer.json)
+solana program set-buffer-authority $ROLLBACK_BUFFER   --new-buffer-authority $MULTISIG_PUBKEY
+
+# 4. Create rollback proposal via Squads
+sqd program-upgrade create   --multisig $MULTISIG_PUBKEY   --program $PROGRAM_ID   --buffer $ROLLBACK_BUFFER   --spill $SPILL_PUBKEY   --name "ROLLBACK $PROGRAM to v$OLD_VERSION"
+
+# 5. Execute after votes
+sqd proposal execute --multisig $MULTISIG_PUBKEY --proposal $ROLLBACK_PROPOSAL
+
+# NOTE: Rollback ONLY reverts program binary.
+# If state was corrupted during migration, you need the migration rollback plan.
+```
+
+**Exit Criteria:**
+- [x] Buffer retained 7 days
+- [x] Rollback transactions documented
+- [x] Old binary available in git
+- [x] Temp accounts closed
+- [x] Git release tagged
 
 ---
 
@@ -81,6 +360,8 @@ These are not suggestions.
 
 ### The Append-Only Rule
 
+Borsh deserializes fields in declaration order, not by name. Move, remove, or insert a field and every existing account becomes corrupted garbage data.
+
 ```
 OLD ACCOUNT              NEW ACCOUNT (SAFE)
 ─────────────────        ─────────────────────
@@ -92,10 +373,12 @@ pub field_b: Pubkey      pub field_b: Pubkey
 
 New fields go at the **end**. No exceptions.
 
+**Why this matters:** Borsh reads bytes sequentially. `field_a` is bytes 0-7, `field_b` is bytes 8-39. If you insert `field_c` between them, every existing account now reads `field_b`'s pubkey bytes as `field_c`'s u64. The program panics. User data is gone forever.
+
 ### Authority Matrix
 
 | Environment | Acceptable Authority | Action Required |
-|-------------|---------------------|-----------------|
+|------------|---------------------|-----------------|
 | Devnet | Hot wallet | None |
 | Testnet | Hot wallet | Warn |
 | Mainnet | Multisig (Squads/Realms) | **Mandatory** |
@@ -108,26 +391,20 @@ New fields go at the **end**. No exceptions.
 Three personas. One goal: don't break production.
 
 ### `upgrade-warden` (Default)
-
 The main operator. Orchestrates the pipeline, asks hard questions, and never lets you skip steps.
-
 - Questions unsafe requests
-- Provides exact commands, not "try this"
-- Always includes a rollback plan
+- Provides exact commands, not approximations
+- Always includes rollback plan
 - Tone: careful senior engineer — "measure twice, cut once"
 
 ### `risk-analyst`
-
 The numbers person. Scores every upgrade 1-10 and flags anything that smells off.
-
 - Scores IDL drift, authority risk, state complexity
 - Requires written justification for scores > 5
 - Blocks deployment if score ≥ 7 without second review
 
 ### `migration-engineer`
-
 The code person. Writes migration instructions you can copy-paste and deploy.
-
 - Prefers lazy migration (on-demand) over batch (expensive)
 - Validates realloc math down to the byte
 - Generates LiteSVM tests for every migration path
@@ -150,7 +427,6 @@ The code person. Writes migration instructions you can copy-paste and deploy.
 ## Deliverables
 
 Every engagement ends with:
-
 1. **Numbered command list** — Copy, paste, run. No guessing.
 2. **Risk summary** — Score, flagged items, mitigations.
 3. **Rollback plan** — Exact recovery transactions ready to sign.
@@ -166,15 +442,18 @@ Every engagement ends with:
 anchor build --verifiable
 
 # 2. Write buffer
-solana program write-buffer target/deploy/my_program.so   --buffer-authority $BUFFER_AUTHORITY
+solana program write-buffer target/deploy/my_program.so   --buffer buffer-keypair.json
 
 # 3. Verify buffer hash matches your build
+BUFFER_PUBKEY=$(solana-keygen pubkey buffer-keypair.json)
 solana program verify $BUFFER_PUBKEY target/deploy/my_program.so
 
-# 4. Propose upgrade via Squads
-# (Use Squads UI or CLI — never a hot wallet)
+# 4. Set authority to multisig
+solana program set-buffer-authority $BUFFER_PUBKEY   --new-buffer-authority $MULTISIG_PUBKEY
 
-# 5. Execute after quorum
+# 5. Propose upgrade via Squads (never hot wallet)
+
+# 6. Execute after quorum
 solana program deploy --buffer $BUFFER_PUBKEY $PROGRAM_ID
 ```
 
@@ -188,6 +467,7 @@ Need more detail? Load these:
 |------|-------------|
 | `rules/safety-rules.md` | User asks "why was I blocked?" |
 | `commands/upgrade-commands.md` | User is ready to execute |
+| `commands/discovery.sh` | User needs automated discovery |
 | `agents/guardian-agent.md` | Customizing agent behavior |
 | `docs/incident-response.md` | SEV-1 through SEV-4 playbooks |
 | `templates/migration-template.rs` | Production migration patterns |
@@ -211,6 +491,30 @@ This skill works across 8 AI platforms. Same safety. Same pipeline. Your choice.
 
 ---
 
+## Installation
+
+```bash
+# Clone the skill
+git clone https://github.com/mikiyasrich455-designich/program-upgrade-guardian-skill.git
+cd program-upgrade-guardian-skill
+
+# Run setup check
+python3 install.py
+
+# Or use bash installer
+chmod +x install.sh
+./install.sh
+
+# Install Claude edition
+mkdir -p ~/.claude/skills/program-upgrade-guardian
+cp SKILL.md ~/.claude/skills/program-upgrade-guardian/
+
+# Verify
+ls ~/.claude/skills/program-upgrade-guardian/SKILL.md
+```
+
+---
+
 ## Emergency Resources
 
 | Resource | URL |
@@ -221,4 +525,4 @@ This skill works across 8 AI platforms. Same safety. Same pipeline. Your choice.
 
 ---
 
-*Version: 2026.06 | Stack: Anchor + Surfpool + LiteSVM | Authority: Multisig-required on mainnet*
+*Version: 2026.06 | Stack: Anchor 0.30 + Solana 1.18 + LiteSVM + Surfpool + Squads | Authority: Multisig-required on mainnet*
