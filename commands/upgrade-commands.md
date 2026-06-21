@@ -10,7 +10,7 @@ solana config get | grep "RPC URL"
 # Should show devnet or localhost. If mainnet, STOP.
 
 # 2. Run dependency checker
-chmod +x install.sh && ./install.sh
+python3 install.py
 
 # 3. Verify program authority
 solana program show <PROGRAM_ID> | grep "Authority"

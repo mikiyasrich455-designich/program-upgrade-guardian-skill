@@ -1,26 +1,18 @@
 {
-  "name": "program-upgrade-guardian-skill",
-  "version": "2026.06.0",
-  "description": "Production-ready skill for safe Solana program upgrades and state migrations",
+  "name": "program-upgrade-guardian",
+  "version": "1.0.0",
+  "description": "Guardian skill for safe Solana program upgrades",
   "scripts": {
-    "idl-check": "ts-node scripts/idl-check.ts",
-    "test:surfpool": "jest tests/surfpool-fork.test.ts",
-    "test:shadow": "ts-node scripts/shadow-test.ts",
-    "monitor": "bash scripts/monitor.sh"
+    "idl-check": "ts-node tests/ci/idl-check.ts",
+    "layout-drift": "ts-node tests/ci/layout-drift.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.0",
     "@solana/web3.js": "^1.91.0"
   },
   "devDependencies": {
-    "@types/node": "^20.12.0",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.1.0",
+    "typescript": "^5.4.0",
     "ts-node": "^10.9.0",
-    "typescript": "^5.4.0"
-  },
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "license": "MIT"
+    "@types/node": "^20.0.0"
+  }
 }
