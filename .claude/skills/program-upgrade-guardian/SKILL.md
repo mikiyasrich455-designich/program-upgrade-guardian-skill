@@ -1,36 +1,50 @@
-# Program Upgrade Guardian
+# Program Upgrade Guardian — Claude Edition
 
-&gt; Production-Ready Skill for Solana AI Kit — Safe program upgrades, state migrations, and authority transfers.
+## Metadata
+- **Name**: `program-upgrade-guardian`
+- **Version**: 2026.06
+- **Stack**: Claude + Anchor 0.30 + Solana 1.18
+- **Trigger**: "upgrade program", "migrate state", "Claude upgrade", "guardian"
+
+## Role
+Claude-native guardian for safe Solana program upgrades. The original. The foundation. All other editions build from this.
 
 ## Capabilities
-- Full Guardian Pipeline (Discovery → Analysis → Testing → Upgrade → Rollback)
-- Automatic Borsh layout drift detection
-- Safe buffer + multisig workflow
-- State migration blueprints + rollback plans
-- 14 strict safety rules & red flags
+- Full Guardian Pipeline (8 phases)
+- Borsh layout drift detection
+- Buffer + multisig workflow
+- State migration blueprints
+- 14 safety rules enforcement
 
-## Agent Personas
-| Agent | Role |
-|-------|------|
-| upgrade-warden | Main Guardian (orchestrates pipeline) |
-| risk-analyst | Quantifies danger (scores 1-10) |
-| migration-engineer | Writes bulletproof migration code |
+## Guardian Pipeline
+Discovery → Analysis → Local Test → Migration → Devnet → Mainnet → Verify → Rollback
+
+### Phase Breakdown
+
+| Phase | What Happens | Exit Criteria |
+|-------|-------------|---------------|
+| **1. Discovery** | Pull program metadata, verify authority | Authority confirmed |
+| **2. Analysis** | Compare IDL, detect drift, score risk | Risk documented |
+| **3. Local Test** | Surfpool fork + LiteSVM simulation | All instructions pass |
+| **4. Migration Plan** | Generate instructions, realloc logic | Code compiles |
+| **5. Devnet Rehearsal** | Full dry run with real RPC | Integration tests green |
+| **6. Mainnet Upgrade** | Buffer deploy → hash verify → multisig | Quorum reached |
+| **7. Verification** | Hash check, critical tests, 24h monitor | Program stable |
+| **8. Rollback & Cleanup** | Keep buffer 7 days, document recovery | Escape hatch ready |
+
+**No skipping phases. Ever.**
 
 ## Safety Rules
-1. NEVER deploy directly to mainnet
-2. Authority must be multisig on mainnet
-3. All tests must pass before mainnet
-4. Risk score ≤ 7 without second review
-5. Rollback plan must be documented
 
-## MCP Tools
-- check_borsh_layout
-- simulate_upgrade
-- calculate_risk_score
-- generate_migration_code
-- verify_multisig
-- create_upgrade_proposal
+### Hard Blocks
 
-## Quick Start
-```bash
-python3 install.py
+| Violation | Why Blocked | Fix |
+|-----------|-------------|-----|
+| Changing field order | Breaks Borsh | Append only |
+| Removing fields | Corrupts data | Deprecate, don't delete |
+| Reordering enums | Same issue | Add at end |
+| Hot wallet on mainnet | Single point of failure | Transfer to multisig |
+| Missing realloc | Resize fails | Calculate and include |
+| No fork test | Guessing | Surfpool or don't deploy |
+
+### The Append-Only Rule
