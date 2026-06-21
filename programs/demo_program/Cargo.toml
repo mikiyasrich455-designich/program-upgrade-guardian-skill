@@ -1,0 +1,19 @@
+[package]
+name = "demo_program"
+version = "0.2.0"
+description = "Program Upgrade Guardian Demo — v2 with lazy migration"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "demo_program"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.30.0"

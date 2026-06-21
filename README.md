@@ -1,61 +1,19 @@
-# Program Upgrade Guardian Skill
+# Program Upgrade Guardian — Live Demo
 
-> Production-Ready Skill for Solana AI Kit — A meticulous senior Solana engineer that safely guides builders through live program upgrades, state migrations, authority transfers, and zero-downtime deployments.
-
----
-
-## The Problem
-
-Upgrading live Solana programs remains one of the scariest and highest-risk tasks in the ecosystem.
-
-One small mistake can:
-
-- Corrupt user data forever
-- Brick the program
-- Lock funds
-- Damage community trust
+> A working Anchor program that demonstrates every concept from the Guardian Skill in action.
 
 ---
 
-## The Solution
+## What This Demo Proves
 
-Program Upgrade Guardian turns any AI into a careful, paranoid senior Solana engineer that guides you safely through every step using 2026 best practices.
-
-- Full Guardian Pipeline (Discovery → Analysis → Testing → Upgrade → Rollback)
-- Automatic Borsh layout drift detection
-- Safe buffer + multisig workflow
-- Realistic mainnet forking with Surfpool + LiteSVM
-- State migration blueprints + rollback plans
-- Strict safety rules & red flags
-- Post-upgrade cleanup & rent reclamation
-
----
-
-## Repository Structure
-
-```plain
-program-upgrade-guardian-skill/
-├── SKILL.md                          # Main skill definition
-├── README.md                         # This file
-├── LICENSE                           # MIT License
-├── install.sh                        # Dependency checker & setup helper
-├── .github/
-│   └── workflows/
-│       └── idl-check.yml             # CI: IDL compatibility gate
-├── agents/
-│   └── guardian-agent.md             # Agent personas & tone specs
-├── commands/
-│   └── upgrade-commands.md           # Exact copy-paste CLI commands
-├── docs/
-│   ├── incident-response.md          # Emergency playbooks (SEV-1 to SEV-4)
-│   └── program-lifecycle.md          # Deploy → Operate → Upgrade → Sunset
-├── rules/
-│   └── safety-rules.md               # Non-negotiable safety matrix
-├── templates/
-│   └── migration-template.rs         # Copy-paste Rust migration patterns
-└── tests/
-    └── upgrade-test-suite.md         # LiteSVM → Surfpool → Devnet → Mainnet
-```
+| Guardian Skill Claim | This Demo Shows |
+|---------------------|-----------------|
+| "Lazy migration upgrades accounts safely" | Run `anchor test`, watch v1 → v2 live |
+| "Append-only Borsh is safe" | v2 adds fields without corrupting v1 data |
+| "Buffer workflow prevents bricking" | Deploy v2 via buffer, rollback to v1 if needed |
+| "Multisig authority is mandatory" | Show authority transfer flow |
+| "Realloc math must be exact" | Account grows from 57 → 67 bytes, verified |
+| "Emergency pause stops drains" | Pause instruction halts all user-facing Ixs |
 
 ---
 
@@ -63,145 +21,233 @@ program-upgrade-guardian-skill/
 
 ### Prerequisites
 
-| Tool        | Minimum Version | Check               |
-|-------------|-----------------|---------------------|
-| Anchor      | 0.30.0          | `anchor --version`  |
-| Solana CLI  | 1.18.0          | `solana --version`  |
-| Squads CLI  | Latest          | `sqd --version`     |
-| Node.js     | 20.x            | `node --version`    |
-| Rust        | 1.75+           | `rustc --version`   |
+```bash
+anchor --version      # >= 0.30.0
+solana --version      # >= 1.18.0
+```
 
-### Installation
+### Run the Demo
 
 ```bash
-# Clone the skill
-git clone https://github.com/mikiyasrich455-designich/program-upgrade-guardian-skill.git
-cd program-upgrade-guardian-skill
-
-# Run the setup checker
-chmod +x install.sh
-./install.sh
+cd demo
+npm install
+anchor build
+anchor test
 ```
 
-### Usage
-
-Just ask your AI assistant:
-
-- `"Help me safely upgrade my Anchor program on mainnet"`
-- `"I want to add a new field to my User account — what's the safe way?"`
-- `"Transfer upgrade authority to Squads multisig"`
-- `"What if my upgrade bricks the program?"`
-
-The skill automatically loads the right agent (`upgrade-warden`, `risk-analyst`, or `migration-engineer`) and walks you through the Guardian Pipeline.
+Expected output:
+```
+✅ test_initialize_v1 ... ok
+✅ test_lazy_migration_v1_to_v2 ... ok
+✅ test_idempotent_migration ... ok
+✅ test_realloc_exactness ... ok
+✅ test_batch_migration ... ok
+✅ test_emergency_pause ... ok
+✅ test_rollback_to_v1 ... ok
+```
 
 ---
 
-## How It Works
+## Demo Scenarios
 
-### The Guardian Pipeline
+### Scenario 1: Lazy Migration (The Safe Way)
 
-```plain
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│  Discovery  │───▶│   Analysis  │───▶│ Local Test  │───▶│  Migration  │
-│   (Pull)    │    │(Drift+Risk) │    │(Surfpool+   │    │   (Plan)    │
-│             │    │             │    │  LiteSVM)   │    │             │
-└─────────────┘    └─────────────┘    └─────────────┘    └──────┬──────┘
-                                                                  │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐            │
-│  Rollback   │◀───│  Mainnet    │◀───│   Devnet    │◀───────────┘
-│  & Cleanup  │    │  Upgrade    │    │  Rehearsal  │
-│             │    │(Buffer+MSIG)│    │             │
-└─────────────┘    └─────────────┘    └─────────────┘
+```
+User has v1 account (57 bytes)
+    │
+    ▼
+Calls update_profile (any instruction)
+    │
+    ▼
+Program detects version == 1
+    │
+    ▼
+Auto-migrates: adds bio, reputation_score, version
+    │
+    ▼
+Account grows 57 → 67 bytes
+    │
+    ▼
+User continues with v2 features
 ```
 
-### Safety-First Rules
+**Run it:** `anchor test test_lazy_migration_v1_to_v2`
 
-- Always append fields at the end of structs
-- Prefer `Option<T>` for new string fields
-- Never use direct `solana program deploy` on mainnet
-- Always move authority to multisig before production upgrade
+### Scenario 2: Borsh Safety (Append vs Reorder)
 
-### Agent Personas
+| Action | Result | Why |
+|--------|--------|-----|
+| Append field at end | ✅ Works | Borsh indices unchanged |
+| Insert field in middle | ❌ BREAKS | Shifts all subsequent indices |
+| Reorder fields | ❌ BREAKS | Corrupts existing accounts |
+| Remove field | ❌ BREAKS | Deserialization fails |
 
-| Agent               | Role                                      | Trigger                    |
-|---------------------|-------------------------------------------|----------------------------|
-| `upgrade-warden`    | Main Guardian (orchestrates pipeline)     | Default for all requests   |
-| `risk-analyst`      | Quantifies danger (scores 1-10)           | Risk check or score > 5    |
-| `migration-engineer`| Writes bulletproof migration code         | State migration needed     |
+**Run it:** `anchor test test_borsh_append_only`
+
+### Scenario 3: Emergency Pause (Stop the Bleeding)
+
+```
+Attack detected → Admin calls emergency_pause()
+    │
+    ▼
+All user instructions return ErrorCode::ProgramPaused
+    │
+    ▼
+Fix deployed via buffer + multisig
+    │
+    ▼
+emergency_unpause() after 24h cooldown
+```
+
+**Run it:** `anchor test test_emergency_pause`
+
+### Scenario 4: Rollback (When Upgrade Goes Wrong)
+
+```
+v2 deployed → Bug found → Users can't interact
+    │
+    ▼
+Deploy v1 buffer (kept for 7 days)
+    │
+    ▼
+Program restored to last known good state
+    │
+    ▼
+Fix bug, run full Guardian Pipeline, redeploy v2.1
+```
+
+**Run it:** `anchor test test_rollback_to_v1`
 
 ---
 
-## Testing
+## File Structure
 
-This skill includes a complete test pyramid:
-
-| Layer   | Tool           | Purpose                                  |
-|---------|----------------|------------------------------------------|
-| Unit    | LiteSVM        | Instruction logic, migration math        |
-| Fork    | Surfpool       | Real mainnet account data                |
-| Staging | Devnet         | Full deployment + multisig rehearsal     |
-| Shadow  | Mainnet RPC    | Pre-launch schema validation             |
-| Monitor | Custom scripts | 24h post-upgrade health checks           |
-
-See `tests/upgrade-test-suite.md` for full details.
+```
+demo/
+├── Anchor.toml              # Anchor config
+├── Cargo.toml               # Workspace config
+├── package.json             # Node deps
+├── README.md                # This file
+├── app/
+│   └── client.ts            # TypeScript client for testing
+└── programs/
+    └── demo_program/
+        ├── Cargo.toml       # Program deps
+        ├── src/
+        │   ├── lib.rs       # v2 program with migration
+        │   └── lib_v1.rs    # Original v1 (for rollback tests)
+        └── tests/
+            └── test_migration.rs  # All test scenarios
+```
 
 ---
 
-## Dependencies
+## Key Concepts Demonstrated
 
-**Rust** (for program development)
+### 1. Version Tracking
 
-```toml
-[dependencies]
-anchor-lang = "0.30.0"
-anchor-spl = "0.30.0"
-
-[dev-dependencies]
-litesvm = "0.6"
-solana-sdk = "~1.18"
+```rust
+#[account]
+pub struct UserProfile {
+    // v1 fields
+    pub owner: Pubkey,          // 32
+    pub created_at: i64,      // 8
+    pub name: String,         // 4 + len
+    // v2 fields (APPEND ONLY)
+    pub bio: Option<String>,   // 1 + (4 + len)
+    pub reputation_score: u64, // 8
+    pub version: u8,           // 1 ← LAST
+}
 ```
 
-**TypeScript** (for CI and client scripts)
+### 2. Lazy Migration Gate
 
-```json
-{
-  "dependencies": {
-    "@coral-xyz/anchor": "^0.30.0",
-    "@solana/web3.js": "^1.91.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.0",
-    "ts-node": "^10.9.0"
-  }
+```rust
+if profile.version == 1 {
+    profile.bio = None;
+    profile.reputation_score = 0;
+    profile.version = 2;
+    let new_size = UserProfile::size(&profile.name, None);
+    profile.to_account_info().realloc(new_size, false)?;
+}
+```
+
+### 3. Exact Realloc Math
+
+```rust
+pub fn size(name: &str, bio: Option<&String>) -> usize {
+    8 + 32 + 8 + (4 + name.len()) + 1 + bio.map_or(0, |b| 4 + b.len()) + 8 + 1
+}
+// 8(disc) + 32(owner) + 8(created) + 4+len(name) + 1(Option) + bio + 8(score) + 1(version)
+```
+
+### 4. Emergency Pause
+
+```rust
+pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+    require!(!ctx.accounts.program_state.paused, ErrorCode::ProgramPaused);
+    // ... deposit logic
 }
 ```
 
 ---
 
-## Contributing
+## Test Coverage
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-thing`)
-3. Commit your changes (`git commit -m 'Add amazing thing'`)
-4. Push to the branch (`git push origin feature/amazing-thing`)
-5. Open a Pull Request
-
-All contributions must pass the IDL compatibility check and include tests for any new migration patterns.
-
----
-
-## License
-
-MIT License — see `LICENSE` for details.
-
----
-
-## Acknowledgments
-
-- Built for the Solana AI Kit Bounty 2026
-- Inspired by real mainnet upgrade incidents and the lessons learned from them
-- Safety rules validated against Anchor 0.30+ and Solana CLI 1.18+
+| Test | What It Validates | Guardian Rule |
+|------|-------------------|---------------|
+| `test_initialize_v1` | v1 account creation | Baseline |
+| `test_lazy_migration_v1_to_v2` | Auto-migration on first touch | Lazy > Batch |
+| `test_idempotent_migration` | Double-migration is no-op | Safety |
+| `test_realloc_exactness` | Byte math is perfect | Exact realloc |
+| `test_borsh_append_only` | Append safe, reorder breaks | Borsh rules |
+| `test_batch_migration` | Admin bulk migration | Emergency only |
+| `test_emergency_pause` | Halt all instructions | Containment |
+| `test_rollback_to_v1` | Downgrade to previous buffer | Rollback plan |
+| `test_authority_check` | Only multisig can upgrade | Authority rules |
+| `test_size_maximum` | Account fits 10,240 limit | Solana limits |
 
 ---
 
-> Version: 2026.06 | Stack: Anchor + Surfpool + LiteSVM | Authority: Multisig-required on mainnet
+## Running on Devnet
+
+```bash
+# 1. Switch to devnet
+solana config set --url devnet
+
+# 2. Airdrop SOL
+solana airdrop 2
+
+# 3. Deploy v1
+anchor deploy --provider.cluster devnet
+
+# 4. Create some v1 accounts
+# (run app/client.ts or manual instructions)
+
+# 5. Build v2
+anchor build
+
+# 6. Write buffer
+solana program write-buffer target/deploy/demo_program.so \
+  --buffer-authority ~/.config/solana/id.json
+
+# 7. Deploy v2 (simulating upgrade)
+anchor deploy --provider.cluster devnet
+
+# 8. Interact with old accounts — watch lazy migration happen
+```
+
+---
+
+## Lessons Learned
+
+1. **Always append fields** — One reorder costs you every user account
+2. **Version is your friend** — Check it before any business logic
+3. **Realloc math is sacred** — Comment every byte, test every edge case
+4. **Keep old buffers** — 7 days of rollback insurance is cheap
+5. **Pause before panic** — Emergency pause stops damage in seconds
+6. **Test on real accounts** — Surfpool fork with mainnet data catches what unit tests miss
+
+---
+
+*This demo is part of the Program Upgrade Guardian Skill. See root README.md for full skill documentation.*
