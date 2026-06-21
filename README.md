@@ -2,12 +2,12 @@
 
 > **The only skill you need for fearless Solana program upgrades.**
 > 
-> One skill. **10 AI tools.** Zero bricked programs.
+> One skill. **8 AI tools.** Zero bricked programs.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Anchor-0.30.0-9945FF?style=for-the-badge&logo=anchor" />
   <img src="https://img.shields.io/badge/Solana-1.18.0-14F195?style=for-the-badge&logo=solana" />
-  <img src="https://img.shields.io/badge/AI_Tools-10-FF6B35?style=for-the-badge&logo=openai" />
+  <img src="https://img.shields.io/badge/AI_Tools-8-FF6B35?style=for-the-badge&logo=openai" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" />
 </p>
 
@@ -60,10 +60,8 @@ Upgrading live Solana programs is **terrifying**.
 | 6 | 🌊 **Windsurf** | `.windsurf/skills/program-upgrade-guardian/` | Agentic coding |
 | 7 | 💬 **ChatGPT** | `.chatgpt/skills/program-upgrade-guardian/` | Interactive help |
 | 8 | 🐋 **DeepSeek** | `.deepseek/skills/program-upgrade-guardian/` | Rust coding |
-| 9 | 🔍 **Perplexity** | `.perplexity/skills/program-upgrade-guardian/` | Docs research |
-| 10 | 🏠 **Ollama** | `.ollama/skills/program-upgrade-guardian/` | Offline/privacy |
 
-> **One skill. Ten platforms. Same safety.**  
+> **One skill. Eight platforms. Same safety.**  
 > See [`SKILLS_INDEX.md`](SKILLS_INDEX.md) for the full breakdown.
 
 ---
@@ -214,8 +212,6 @@ program-upgrade-guardian-skill/
 ├── .windsurf/skills/program-upgrade-guardian/SKILL.md
 ├── .chatgpt/skills/program-upgrade-guardian/SKILL.md
 ├── .deepseek/skills/program-upgrade-guardian/SKILL.md
-├── .perplexity/skills/program-upgrade-guardian/SKILL.md
-├── .ollama/skills/program-upgrade-guardian/SKILL.md
 │
 ├── agents/
 │   └── guardian-agent.md             # Agent personas & selection
@@ -238,7 +234,7 @@ program-upgrade-guardian-skill/
 
 | Other Skills | Program Upgrade Guardian |
 |-------------|---------------------------|
-| Single AI tool | ✅ **10 AI tools** — use what you already use |
+| Single AI tool | ✅ **8 AI tools** — use what you already use |
 | Generic Solana dev | ✅ **Upgrade-specific** — laser-focused on the scariest task |
 | No safety enforcement | ✅ **14 auto-block rules** — violations caught before deployment |
 | No rollback plan | ✅ **Built-in rollback** — every upgrade has an escape hatch |
@@ -278,5 +274,5 @@ MIT — see [`LICENSE`](LICENSE)
   <b>Version</b>: 2026.06 | 
   <b>Stack</b>: Anchor + Surfpool + LiteSVM | 
   <b>Authority</b>: Multisig-required on mainnet | 
-  <b>AI Tools</b>: 10
+  <b>AI Tools</b>: 8
 </p>
