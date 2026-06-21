@@ -1,210 +1,169 @@
-Upgrade Commands
-Every command you need, ready to copy-paste. Replace placeholders before executing.
-Table of Contents
-Prerequisites
+# Upgrade Commands - Copy-Paste Ready
 
-Phase 1: Discovery
-Phase 2: Build & Verify
-Phase 3: Buffer Management
-Phase 4: Multisig Flow (Squads)
-Phase 5: Deploy & Verify
-Phase 6: Rollback
-Environment Variables
-Prerequisites
-Required Tools
-bash
-# Verify installations
-anchor --version      # >= 0.30.0
-solana --version      # >= 1.18.0
-sqd --version         # Squads CLI (optional but recommended)
-Environment Variables
-Set these in your shell or .env:
-bash
-export PROGRAM_ID="YourProgramPubkeyHere"
-export BUFFER_AUTHORITY="YourBufferAuthorityPubkeyHere"
-export SQUADS_AUTHORITY="YourSquadsAuthorityPubkeyHere"
-export CLUSTER="mainnet-beta"  # or devnet
-export KEYPAIR="~/.config/solana/id.json"
-Phase 1: Discovery
-Pull Program Metadata
-bash
-# Full program info
-solana program show $PROGRAM_ID --output json
+> **WARNING**: Read the entire pipeline before executing any command. Never skip steps.
 
-# Just the authority
-solana program show $PROGRAM_ID | grep "Authority"
+## Phase 0: Pre-Flight Checks
 
-# Program accounts (requires Helius or similar)
-curl -X POST https://mainnet.helius-rpc.com/?api-key=<KEY> \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "getProgramAccounts",
-    "params": [
-      "'"$PROGRAM_ID"'",
-      {"encoding": "base64", "filters": []}
-    ]
-  }'
-IDL Comparison
-bash
-# Download on-chain IDL
-anchor idl fetch $PROGRAM_ID --provider.cluster $CLUSTER > idl_onchain.json
+```bash
+# 1. Verify you're NOT on mainnet
+solana config get | grep "RPC URL"
+# Should show devnet or localhost. If mainnet, STOP.
 
-# Compare with local
-anchor idl parse --file target/idl/my_program.json > idl_local.json
-diff idl_onchain.json idl_local.json
-Phase 2: Build & Verify
-Verifiable Build
-bash
-# Standard build
+# 2. Run dependency checker
+chmod +x install.sh && ./install.sh
+
+# 3. Verify program authority
+solana program show <PROGRAM_ID> | grep "Authority"
+# Should show your multisig pubkey, NOT a single keypair
+```
+
+## Phase 1: Build & Verify
+
+```bash
+# Build the new program
 anchor build
 
-# Verifiable build (required for mainnet)
-anchor build --verifiable
+# Verify the build hash
+sha256sum target/deploy/<program_name>.so
+# Record this hash for verification later
 
-# Output paths:
-# target/deploy/my_program.so
-# target/idl/my_program.json
-# target/types/my_program.ts
-Verify Build Hash
-bash
-# Get buffer hash
-solana program dump $PROGRAM_ID /tmp/onchain_program.so
-sha256sum /tmp/onchain_program.so
-sha256sum target/deploy/my_program.so
+# Generate new IDL
+anchor idl init --filepath target/idl/<program_name>.json <PROGRAM_ID>
+# OR if IDL exists:
+anchor idl upgrade --filepath target/idl/<program_name>.json <PROGRAM_ID>
+```
 
-# They must match before upgrade
-Phase 3: Buffer Management
-Write Buffer
-bash
-# Write program to buffer
-solana program write-buffer target/deploy/my_program.so \
-  --buffer-authority $BUFFER_AUTHORITY \
-  --keypair $KEYPAIR
+## Phase 2: Borsh Layout Check
 
-# Capture BUFFER_PUBKEY from output
-export BUFFER_PUBKEY="BufferPubkeyFromOutput"
-Verify Buffer
-bash
-# Check buffer matches local build
-solana program show $BUFFER_PUBKEY --output json
+```bash
+# Compare old vs new IDL for breaking changes
+# (This should be automated in CI, but run manually too)
 
-# Dump and hash-check
-solana program dump $BUFFER_PUBKEY /tmp/buffer_program.so
-sha256sum /tmp/buffer_program.so target/deploy/my_program.so
-Set Buffer Authority (if needed)
-bash
-# Transfer buffer authority to Squads
-solana program set-buffer-authority $BUFFER_PUBKEY \
-  --new-buffer-authority $SQUADS_AUTHORITY \
-  --keypair $KEYPAIR
-List Buffers
-bash
-# Find all buffers owned by your key
-solana program show --buffers --keypair $KEYPAIR
-Close Buffer (cleanup)
-bash
-# Recover rent from old buffer
-solana program close $BUFFER_PUBKEY \
-  --keypair $KEYPAIR \
-  --recipient <RENT_RECOVERY_PUBKEY>
-Phase 4: Multisig Flow (Squads)
-Option A: Squads UI (Recommended)
-Go to https://v3.squads.so
-Select your multisig
-Navigate to Programs → Upgrade Program
-Paste PROGRAM_ID and BUFFER_PUBKEY
-Propose transaction
-Share proposal link with signers
-Execute after threshold reached
-Option B: Squads CLI
-bash
-# Install if needed
-npm install -g @sqds/cli
+# Install IDL diff tool if needed
+npm install -g @coral-xyz/anchor-cli
 
-# Propose upgrade
-sqd program-upgrade propose \
-  --program-id $PROGRAM_ID \
-  --buffer $BUFFER_PUBKEY \
-  --multisig $SQUADS_VAULT_PUBKEY \
-  --keypair $KEYPAIR \
-  --cluster $CLUSTER
+# Extract account layouts
+jq '.accounts' target/idl/<program_name>.json > new_accounts.json
+git show HEAD:target/idl/<program_name>.json | jq '.accounts' > old_accounts.json
 
-# List pending proposals
-sqd program-upgrade list --multisig $SQUADS_VAULT_PUBKEY
+# Manual check: ensure fields are ONLY appended at the end
+# Any field removal, reorder, or size reduction = BREAKING
+```
 
-# Approve (as a signer)
-sqd program-upgrade approve \
-  --proposal <PROPOSAL_PUBKEY> \
-  --keypair $KEYPAIR
+## Phase 3: Buffer Creation (Multisig Required)
 
-# Execute after threshold
-sqd program-upgrade execute \
-  --proposal <PROPOSAL_PUBKEY> \
-  --keypair $KEYPAIR
-Option C: Manual Multisig (Realms / Custom)
-bash
-# Each signer runs:
-solana program deploy --buffer $BUFFER_PUBKEY $PROGRAM_ID \
-  --keypair $SIGNER_KEYPAIR \
-  --sign-only \
-  --blockhash <RECENT_BLOCKHASH>
+```bash
+# Create a buffer keypair
+solana-keygen new -o buffer-keypair.json --no-bip39-passphrase
 
-# Collect all partial signatures, then:
-solana program deploy --buffer $BUFFER_PUBKEY $PROGRAM_ID \
-  --signer <PUBKEY1>=<SIGNATURE1> \
-  --signer <PUBKEY2>=<SIGNATURE2> \
-  --blockhash <RECENT_BLOCKHASH>
-Phase 5: Deploy & Verify
-Post-Deploy Verification
-bash
-# 1. Confirm new program hash
-solana program show $PROGRAM_ID --output json | jq '.programData[] | .upgradeAuthority, .lastDeploySlot'
+# Write program to buffer (DO NOT deploy yet)
+solana program write-buffer target/deploy/<program_name>.so --buffer buffer-keypair.json
 
-# 2. Verify IDL updated
-anchor idl fetch $PROGRAM_ID --provider.cluster $CLUSTER > idl_post.json
-diff idl_local.json idl_post.json
+# Record buffer address
+BUFFER_PUBKEY=$(solana-keygen pubkey buffer-keypair.json)
+echo "Buffer: $BUFFER_PUBKEY"
 
-# 3. Test critical instruction
-anchor test --skip-build --provider.cluster $CLUSTER
+# Set buffer authority to multisig (CRITICAL)
+solana program set-buffer-authority $BUFFER_PUBKEY --new-buffer-authority <MULTISIG_PUBKEY>
+
+# Verify buffer authority changed
+solana program show $BUFFER_PUBKEY | grep "Authority"
+```
+
+## Phase 4: Squads Multisig Upgrade Proposal
+
+```bash
+# Using Squads CLI (sqd)
+
+# 1. Create upgrade proposal
+sqd program-upgrade create \
+  --multisig <MULTISIG_PUBKEY> \
+  --program <PROGRAM_ID> \
+  --buffer <BUFFER_PUBKEY> \
+  --spill <YOUR_WALLET_PUBKEY> \
+  --name "Upgrade <program_name> to v<X.Y.Z>"
+
+# 2. Get proposal address
+sqd program-upgrade list --multisig <MULTISIG_PUBKEY>
+
+# 3. Have multisig members vote
+sqd proposal vote --multisig <MULTISIG_PUBKEY> --proposal <PROPOSAL_PUBKEY>
+
+# 4. Execute once threshold reached
+sqd proposal execute --multisig <MULTISIG_PUBKEY> --proposal <PROPOSAL_PUBKEY>
+
+# 5. Verify upgrade succeeded
+solana program show <PROGRAM_ID> | grep "Last Deployed"
+```
+
+## Phase 5: Post-Upgrade Verification
+
+```bash
+# 1. Verify program hash matches build
+solana program dump <PROGRAM_ID> /tmp/verify.so
+sha256sum /tmp/verify.so target/deploy/<program_name>.so
+# MUST match exactly
+
+# 2. Verify authority is still multisig
+solana program show <PROGRAM_ID> | grep "Authority"
+
+# 3. Test critical instructions
+anchor test --skip-build
+# Or run specific integration tests against mainnet RPC
 
 # 4. Monitor for 24h
-# Set up alerts for:
-#   - Transaction error rate spikes
-#   - Unusual instruction patterns
-#   - Account deserialization failures
-Priority Fee Deployment (High Traffic)
-bash
-# Add priority fee for faster inclusion
-solana program deploy --buffer $BUFFER_PUBKEY $PROGRAM_ID \
-  --with-compute-unit-price 10000 \
-  --max-sign-attempts 10
-Phase 6: Rollback
-Emergency Rollback to Previous Buffer
-bash
-# You must have kept the old buffer (Rule #8)
-export OLD_BUFFER="OldBufferPubkeyHere"
+# Check program logs for errors
+# Verify all user accounts are accessible
+```
 
-# Via Squads UI: propose upgrade to OLD_BUFFER
-# Or via CLI:
-sqd program-upgrade propose \
-  --program-id $PROGRAM_ID \
-  --buffer $OLD_BUFFER \
-  --multisig $SQUADS_VAULT_PUBKEY
-Close Failed Buffer
-bash
-# If new buffer was never deployed, close it
-solana program close $BUFFER_PUBKEY --keypair $KEYPAIR
-Environment Variables
-Quick Reference
-Table
-Variable	Description	Example
-PROGRAM_ID	On-chain program address	Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
-BUFFER_PUBKEY	Temporary buffer address	7nY7H...
-BUFFER_AUTHORITY	Key that can write/close buffer	Your deployer key
-SQUADS_AUTHORITY	Multisig PDA that controls program	8kJ...
-SQUADS_VAULT_PUBKEY	Squads vault for proposals	3xK...
-CLUSTER	Target cluster	mainnet-beta, devnet
-KEYPAIR	Path to your local keypair	~/.config/solana/id.json
-Version: 2026.06 | Tested on: Solana CLI 1.18+, Anchor 0.30+, Squads v3
+## Phase 6: Cleanup
+
+```bash
+# Reclaim buffer rent (after confirming upgrade is stable)
+solana program close --buffers
+# This returns rent to the spill address
+
+# Update documentation
+# Tag release in git
+git tag -a v<X.Y.Z> -m "Mainnet upgrade: <description>"
+git push origin v<X.Y.Z>
+```
+
+## Emergency: Rollback
+
+```bash
+# If upgrade is broken, you need the PREVIOUS .so file
+
+# 1. Build old version (or use cached .so)
+git checkout <PREVIOUS_COMMIT>
+anchor build
+
+# 2. Create rollback buffer
+solana-keygen new -o rollback-buffer.json --no-bip39-passphrase
+solana program write-buffer target/deploy/<program_name>.so --buffer rollback-buffer.json
+
+# 3. Set authority to multisig
+solana program set-buffer-authority $(solana-keygen pubkey rollback-buffer.json) \
+  --new-buffer-authority <MULTISIG_PUBKEY>
+
+# 4. Create rollback proposal via Squads
+sqd program-upgrade create \
+  --multisig <MULTISIG_PUBKEY> \
+  --program <PROGRAM_ID> \
+  --buffer $(solana-keygen pubkey rollback-buffer.json) \
+  --spill <YOUR_WALLET_PUBKEY> \
+  --name "ROLLBACK <program_name> to v<PREVIOUS_VERSION>"
+
+# 5. Execute after votes
+sqd proposal execute --multisig <MULTISIG_PUBKEY> --proposal <ROLLBACK_PROPOSAL>
+
+# NOTE: This ONLY rolls back the program binary.
+# If state was corrupted during migration, you need the migration rollback plan.
+```
+
+## One-Liner Safety Check
+
+```bash
+# Run this before ANY mainnet operation
+solana config get | grep -q "mainnet" && echo "STOP: You're on mainnet" || echo "OK: Not on mainnet"
+```
