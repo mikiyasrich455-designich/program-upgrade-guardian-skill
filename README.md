@@ -1,103 +1,112 @@
-# Program Upgrade Guardian
+# 🛡️ Program Upgrade Guardian
 
-> Production-Ready Skill for Solana AI Kit — A meticulous senior Solana engineer that safely guides builders through live program upgrades, state migrations, authority transfers, and zero-downtime deployments.
+> **The only skill you need for fearless Solana program upgrades.**
+> 
+> One skill. **10 AI tools.** Zero bricked programs.
 
----
-
-## The Problem
-
-Upgrading live Solana programs remains one of the scariest and highest-risk tasks in the ecosystem.
-
-One small mistake can:
-
-- Corrupt user data forever
-- Brick the program
-- Lock funds
-- Damage community trust
+<p align="center">
+  <img src="https://img.shields.io/badge/Anchor-0.30.0-9945FF?style=for-the-badge&logo=anchor" />
+  <img src="https://img.shields.io/badge/Solana-1.18.0-14F195?style=for-the-badge&logo=solana" />
+  <img src="https://img.shields.io/badge/AI_Tools-10-FF6B35?style=for-the-badge&logo=openai" />
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" />
+</p>
 
 ---
 
-## The Solution
+## 🔥 The Problem
 
-Program Upgrade Guardian turns any AI into a careful, paranoid senior Solana engineer that guides you safely through every step using 2026 best practices.
+Upgrading live Solana programs is **terrifying**.
 
-- **Full Guardian Pipeline** (Discovery → Analysis → Testing → Upgrade → Rollback)
-- **Automatic Borsh layout drift detection**
-- **Safe buffer + multisig workflow**
-- **Realistic mainnet forking** with Surfpool + LiteSVM
-- **State migration blueprints** + rollback plans
-- **Strict safety rules** & red flags
-- **Post-upgrade cleanup** & rent reclamation
+| What Goes Wrong | The Damage |
+|----------------|------------|
+| 💥 Corrupt user data | **Permanent loss** — no undo button on-chain |
+| 🧱 Brick the program | **Dead contract** — users locked out forever |
+| 🔒 Lock funds | **TVL frozen** — protocol becomes a vault with no key |
+| 😤 Lose community trust | **Reputation death** — one tweet away from doom |
 
----
-
-## Repository Structure
-
-```
-program-upgrade-guardian-skill/
-├── SKILL.md                          # Main skill definition
-├── README.md                         # This file
-├── LICENSE                           # MIT License
-├── install.py                        # Dependency checker & setup helper (safe Python)
-├── .github/
-│   └── workflows/
-│       └── idl-check.yml             # CI: 6-gate pipeline (lint → tests → IDL → audit → build → risk)
-├── agents/
-│   └── guardian-agent.md             # Agent personas, tool schemas & selection logic
-├── commands/
-│   └── upgrade-commands.md           # Exact copy-paste CLI commands for every phase
-├── docs/
-│   ├── incident-response.md          # Emergency playbooks (SEV-1 to SEV-4)
-│   └── program-lifecycle.md          # Deploy → Operate → Upgrade → Sunset
-├── rules/
-│   └── safety-rules.md               # 14 non-negotiable safety rules with auto-block matrix
-├── templates/
-│   └── migration-template.rs         # 3 production-ready Rust migration patterns
-└── tests/
-    └── upgrade-test-suite.md         # LiteSVM → Surfpool → Devnet → Mainnet test pyramid
-```
+**One small mistake. Catastrophic consequences.**
 
 ---
 
-## Quick Start
+## ✨ The Solution
+
+**Program Upgrade Guardian** transforms **any AI** into a paranoid senior Solana engineer that holds your hand through every upgrade — from discovery to rollback.
+
+### What You Get
+
+| Feature | Why It Slaps |
+|---------|-------------|
+| 🔄 **Full Guardian Pipeline** | Discovery → Analysis → Test → Migrate → Deploy → Rollback |
+| 🔍 **Borsh Layout Drift Detection** | Catches account corruption **before** it hits mainnet |
+| 🛡️ **Buffer + Multisig Workflow** | Safe, auditable deployments — no cowboy deploys |
+| 🧪 **Mainnet Forking** | Test against **real accounts** with Surfpool + LiteSVM |
+| 📋 **State Migration Blueprints** | 3 production-ready Rust patterns — copy, paste, deploy |
+| ⚠️ **14 Safety Rules** | Non-negotiable. Auto-blocked if violated. |
+| 🧹 **Post-Upgrade Cleanup** | Rent reclamation + 24h health monitoring |
+
+---
+
+## 🤖 Universal AI Support
+
+**We don't lock you into one AI.** Pick your weapon:
+
+| # | Tool | Path | Best For |
+|---|------|------|----------|
+| 1 | 🟣 **Claude** | `.claude/skills/program-upgrade-guardian/` | General guardian |
+| 2 | 🖥️ **Cursor** | `.cursor/skills/program-upgrade-guardian/` | IDE copilot |
+| 3 | 🤖 **Codex** | `.codex/skills/program-upgrade-guardian/` | Program generation |
+| 4 | 🔷 **Gemini** | `.gemini/skills/program-upgrade-guardian/` | Architecture |
+| 5 | 🐙 **GitHub Copilot** | `.github/skills/program-upgrade-guardian/` | VS Code autocomplete |
+| 6 | 🌊 **Windsurf** | `.windsurf/skills/program-upgrade-guardian/` | Agentic coding |
+| 7 | 💬 **ChatGPT** | `.chatgpt/skills/program-upgrade-guardian/` | Interactive help |
+| 8 | 🐋 **DeepSeek** | `.deepseek/skills/program-upgrade-guardian/` | Rust coding |
+| 9 | 🔍 **Perplexity** | `.perplexity/skills/program-upgrade-guardian/` | Docs research |
+| 10 | 🏠 **Ollama** | `.ollama/skills/program-upgrade-guardian/` | Offline/privacy |
+
+> **One skill. Ten platforms. Same safety.**  
+> See [`SKILLS_INDEX.md`](SKILLS_INDEX.md) for the full breakdown.
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-| Tool | Minimum Version | Check |
-|------|----------------|-------|
+| Tool | Min Version | Check |
+|------|-------------|-------|
 | Anchor | 0.30.0 | `anchor --version` |
 | Solana CLI | 1.18.0 | `solana --version` |
 | Squads CLI | Latest | `sqd --version` |
 | Node.js | 20.x | `node --version` |
 | Rust | 1.75+ | `rustc --version` |
 
-### Installation
+### Install
 
 ```bash
-# Clone the skill
 git clone https://github.com/mikiyasrich455-designich/program-upgrade-guardian-skill.git
 cd program-upgrade-guardian-skill
-
-# Run the setup checker (safe Python script — read it first!)
-python3 install.py
+python3 install.py  # Read-only checker. Safe.
 ```
 
-> **Note**: `install.py` is a read-only environment checker. It does not modify your system.
+> **Note:** `install.py` is read-only. It checks your env. It does **not** modify your system.
 
-### Usage
+### Use It
 
-Just ask your AI assistant:
+Just ask your AI:
 
-- `"Help me safely upgrade my Anchor program on mainnet"`
-- `"I want to add a new field to my User account — what's the safe way?"`
-- `"Transfer upgrade authority to Squads multisig"`
-- `"What if my upgrade bricks the program?"`
+> *"Help me safely upgrade my Anchor program on mainnet"*
 
-The skill automatically loads the right agent (`upgrade-warden`, `risk-analyst`, or `migration-engineer`) and walks you through the Guardian Pipeline.
+> *"I want to add a new field to my User account — what's the safe way?"*
+
+> *"Transfer upgrade authority to Squads multisig"*
+
+> *"What if my upgrade bricks the program?"*
+
+The skill auto-loads the right agent and walks you through the pipeline.
 
 ---
 
-## How It Works
+## ⚙️ How It Works
 
 ### The Guardian Pipeline
 
@@ -117,26 +126,34 @@ The skill automatically loads the right agent (`upgrade-warden`, `risk-analyst`,
 
 ### Safety-First Rules
 
-- Always append fields at the end of structs
-- Prefer `Option<T>` for new string fields
-- Never use direct `solana program deploy` on mainnet
-- Always move authority to multisig before production upgrade
-- Risk score ≥ 7 requires second human review
-- All tests must pass before mainnet
+| # | Rule | Enforced |
+|---|------|----------|
+| 1 | Append fields **only** at end of structs | ✅ Auto-block |
+| 2 | Prefer `Option<T>` for new string fields | ✅ Auto-block |
+| 3 | **Never** use `solana program deploy` on mainnet | ✅ Auto-block |
+| 4 | Always move authority to **multisig** before upgrade | ✅ Auto-block |
+| 5 | Risk score **≥ 7** → second human review required | ⚠️ Warn |
+| 6 | All tests **must pass** before mainnet | ✅ Auto-block |
+| 7 | Verify **Borsh layout** compatibility | ✅ Auto-block |
+| 8 | **Never** remove existing fields from accounts | ✅ Auto-block |
+| 9 | Always have a **rollback plan** | ⚠️ Warn |
+| 10 | Test on **devnet** before mainnet | ✅ Auto-block |
+| 11 | Verify **buffer hash** matches intended program | ✅ Auto-block |
+| 12 | Check **compute unit** limits after upgrade | ⚠️ Warn |
+| 13 | Ensure **rent exemption** for new accounts | ✅ Auto-block |
+| 14 | Validate all **CPI program IDs** | ✅ Auto-block |
 
 ### Agent Personas
 
 | Agent | Role | Trigger |
 |-------|------|---------|
-| `upgrade-warden` | Main Guardian (orchestrates pipeline) | Default for all requests |
-| `risk-analyst` | Quantifies danger (scores 1-10) | Risk check or score > 5 |
-| `migration-engineer` | Writes bulletproof migration code | State migration needed |
+| `upgrade-warden` | 🛡️ Main Guardian (orchestrates pipeline) | Default |
+| `risk-analyst` | 🔴 Quantifies danger (scores 1-10) | Risk check or score > 5 |
+| `migration-engineer` | 🔧 Writes bulletproof migration code | State migration needed |
 
 ---
 
-## Testing
-
-This skill includes a complete test pyramid:
+## 🧪 Testing Pyramid
 
 | Layer | Tool | Purpose |
 |-------|------|---------|
@@ -146,14 +163,13 @@ This skill includes a complete test pyramid:
 | Shadow | Mainnet RPC | Pre-launch schema validation |
 | Monitor | Custom scripts | 24h post-upgrade health checks |
 
-See `tests/upgrade-test-suite.md` for full details.
+See [`tests/upgrade-test-suite.md`](tests/upgrade-test-suite.md) for full details.
 
 ---
 
-## Dependencies
+## 📦 Dependencies
 
-**Rust** (for program development)
-
+**Rust**
 ```toml
 [dependencies]
 anchor-lang = "0.30.0"
@@ -164,8 +180,7 @@ litesvm = "0.6"
 solana-sdk = "~1.18"
 ```
 
-**TypeScript** (for CI and client scripts)
-
+**TypeScript**
 ```json
 {
   "dependencies": {
@@ -181,30 +196,87 @@ solana-sdk = "~1.18"
 
 ---
 
-## Contributing
+## 🏗️ Repository Structure
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-thing`)
-3. Commit your changes (`git commit -m 'Add amazing thing'`)
-4. Push to the branch (`git push origin feature/amazing-thing`)
-5. Open a Pull Request
-
-All contributions must pass the IDL compatibility check and include tests for any new migration patterns.
+```
+program-upgrade-guardian-skill/
+├── SKILL.md                          # Main skill definition
+├── README.md                         # This file
+├── SKILLS_INDEX.md                   # Multi-AI tool index
+├── LICENSE                           # MIT
+├── install.py                        # Safe setup checker
+│
+├── .claude/skills/program-upgrade-guardian/SKILL.md
+├── .cursor/skills/program-upgrade-guardian/SKILL.md
+├── .codex/skills/program-upgrade-guardian/SKILL.md
+├── .gemini/skills/program-upgrade-guardian/SKILL.md
+├── .github/skills/program-upgrade-guardian/SKILL.md
+├── .windsurf/skills/program-upgrade-guardian/SKILL.md
+├── .chatgpt/skills/program-upgrade-guardian/SKILL.md
+├── .deepseek/skills/program-upgrade-guardian/SKILL.md
+├── .perplexity/skills/program-upgrade-guardian/SKILL.md
+├── .ollama/skills/program-upgrade-guardian/SKILL.md
+│
+├── agents/
+│   └── guardian-agent.md             # Agent personas & selection
+├── commands/
+│   └── upgrade-commands.md           # Copy-paste CLI commands
+├── docs/
+│   ├── incident-response.md          # SEV-1 to SEV-4 playbooks
+│   └── program-lifecycle.md        # Deploy → Upgrade → Sunset
+├── rules/
+│   └── safety-rules.md             # 14 non-negotiable rules
+├── templates/
+│   └── migration-template.rs         # 3 migration patterns
+└── tests/
+    └── upgrade-test-suite.md       # Test pyramid
+```
 
 ---
 
-## License
+## 🎯 Why This Wins
 
-MIT License — see `LICENSE` for details.
+| Other Skills | Program Upgrade Guardian |
+|-------------|---------------------------|
+| Single AI tool | ✅ **10 AI tools** — use what you already use |
+| Generic Solana dev | ✅ **Upgrade-specific** — laser-focused on the scariest task |
+| No safety enforcement | ✅ **14 auto-block rules** — violations caught before deployment |
+| No rollback plan | ✅ **Built-in rollback** — every upgrade has an escape hatch |
+| No testing strategy | ✅ **5-layer test pyramid** — from unit to 24h monitoring |
+| No migration patterns | ✅ **3 production templates** — copy, paste, deploy |
+| No incident response | ✅ **SEV-1 to SEV-4 playbooks** — know exactly what to do when shit hits the fan |
 
 ---
 
-## Acknowledgments
+## 🤝 Contributing
 
-- Built for the Solana AI Kit Bounty 2026
-- Inspired by real mainnet upgrade incidents and the lessons learned from them
-- Safety rules validated against Anchor 0.30+ and Solana CLI 1.18+
+1. Fork it
+2. Branch: `git checkout -b feature/amazing-thing`
+3. Commit: `git commit -m 'Add amazing thing'`
+4. Push: `git push origin feature/amazing-thing`
+5. Open PR
+
+All PRs must pass IDL compatibility check + include tests for new migration patterns.
 
 ---
 
-> **Version**: 2026.06 | **Stack**: Anchor + Surfpool + LiteSVM | **Authority**: Multisig-required on mainnet
+## 📜 License
+
+MIT — see [`LICENSE`](LICENSE)
+
+---
+
+## 🙏 Acknowledgments
+
+- Built for **Solana AI Kit Bounty 2026**
+- Inspired by real mainnet upgrade incidents
+- Safety rules validated against Anchor 0.30+ & Solana CLI 1.18+
+
+---
+
+<p align="center">
+  <b>Version</b>: 2026.06 | 
+  <b>Stack</b>: Anchor + Surfpool + LiteSVM | 
+  <b>Authority</b>: Multisig-required on mainnet | 
+  <b>AI Tools</b>: 10
+</p>
